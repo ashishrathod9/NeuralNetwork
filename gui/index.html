@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Neural Network Visualizer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 5px;
+        }
+        
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            min-width: 150px;
+        }
+        
+        label {
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        
+        input, button {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            padding: 10px 15px;
+        }
+        
+        button:hover {
+            background-color: #45a049;
+        }
+        
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        
+        .network-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 500px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background: #fff;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        
+        #networkCanvas {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .log-container {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            height: 200px;
+            overflow-y: auto;
+            font-family: monospace;
+        }
+        
+        .status {
+            margin-top: 10px;
+            padding: 10px;
+            background: #e7f3ff;
+            border-radius: 4px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Neural Network Visualizer</h1>
+        
+        <div class="controls">
+            <div class="control-group">
+                <label for="epochs">Epochs:</label>
+                <input type="number" id="epochs" value="100" min="1" max="10000">
+            </div>
+            
+            <div class="control-group">
+                <label for="learningRate">Learning Rate:</label>
+                <input type="number" id="learningRate" value="0.1" step="0.01" min="0.001" max="1.0">
+            </div>
+            
+            <div class="control-group">
+                <label for="hiddenSize">Hidden Neurons:</label>
+                <input type="number" id="hiddenSize" value="4" min="1" max="100">
+            </div>
+            
+            <div class="control-group">
+                <label for="dataset">Dataset:</label>
+                <select id="dataset">
+                    <option value="xor">XOR (2-in, 1-out)</option>
+                    <option value="and">AND (2-in, 1-out)</option>
+                    <option value="or">OR (2-in, 1-out)</option>
+                    <option value="not">NOT (1-in, 1-out)</option>
+                </select>
+            </div>
+            
+            <div class="control-group">
+                <label>&nbsp;</label>
+                <button id="startBtn">Start Training</button>
+            </div>
+            
+            <div class="control-group">
+                <label>&nbsp;</label>
+                <button id="stopBtn" disabled>Stop Training</button>
+            </div>
+        </div>
+        
+        <div class="network-container">
+            <canvas id="networkCanvas"></canvas>
+        </div>
+        
+        <div class="status" id="status">Ready to train neural network</div>
+        
+        <div class="log-container">
+            <pre id="log">Training Log:
+- Network initialized with 2 inputs, 4 hidden neurons, 1 output
+- Training on XOR dataset (4 samples)
+- Press "Start Training" to begin</pre>
+        </div>
+    </div>
+
+    <script>
+        // Network structure
+        const network = {
+            inputNodes: 2,
+            hiddenNodes: 4,
+            outputNodes: 1,
+            // Random initial weights
+            inputToHiddenWeights: [],
+            hiddenToOutputWeights: [],
+            hiddenBiases: [],
+            outputBias: 0,
+            
+            init() {
+                // Initialize with random weights
+                this.inputToHiddenWeights = Array(this.inputNodes).fill().map(() => 
+                    Array(this.hiddenNodes).fill().map(() => (Math.random() - 0.5) * 2)
+                );
+                
+                this.hiddenToOutputWeights = Array(this.hiddenNodes).fill().map(() => 
+                    (Math.random() - 0.5) * 2
+                );
+                
+                this.hiddenBiases = Array(this.hiddenNodes).fill().map(() => (Math.random() - 0.5) * 2);
+                this.outputBias = (Math.random() - 0.5) * 2;
+            }
+        };
+        
+        let trainingData = [];
+        
+        function setupTrainingData() {
+            const dataset = document.getElementById('dataset').value;
+            switch(dataset) {
+                case 'xor':
+                    trainingData = [
+                        {input: [0, 0], output: [0]},
+                        {input: [0, 1], output: [1]},
+                        {input: [1, 0], output: [1]},
+                        {input: [1, 1], output: [0]}
+                    ];
+                    network.inputNodes = 2;
+                    network.outputNodes = 1;
+                    break;
+                    
+                case 'and':
+                    trainingData = [
+                        {input: [0, 0], output: [0]},
+                        {input: [0, 1], output: [0]},
+                        {input: [1, 0], output: [0]},
+                        {input: [1, 1], output: [1]}
+                    ];
+                    network.inputNodes = 2;
+                    network.outputNodes = 1;
+                    break;
+                    
+                case 'or':
+                    trainingData = [
+                        {input: [0, 0], output: [0]},
+                        {input: [0, 1], output: [1]},
+                        {input: [1, 0], output: [1]},
+                        {input: [1, 1], output: [1]}
+                    ];
+                    network.inputNodes = 2;
+                    network.outputNodes = 1;
+                    break;
+                    
+                case 'not':
+                    trainingData = [
+                        {input: [0], output: [1]},
+                        {input: [1], output: [0]}
+                    ];
+                    network.inputNodes = 1;
+                    network.outputNodes = 1;
+                    break;
+                    
+                default: // xor as default
+                    trainingData = [
+                        {input: [0, 0], output: [0]},
+                        {input: [0, 1], output: [1]},
+                        {input: [1, 0], output: [1]},
+                        {input: [1, 1], output: [0]}
+                    ];
+                    network.inputNodes = 2;
+                    network.outputNodes = 1;
+                    break;
+            }
+        }
+        
+        // Initialize with default dataset
+        setupTrainingData();
+        
+        let isTraining = false;
+        let trainingInterval = null;
+        let currentEpoch = 0;
+        let maxEpochs = 100;
+        
+        // DOM elements
+        const canvas = document.getElementById('networkCanvas');
+        const ctx = canvas.getContext('2d');
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const logElement = document.getElementById('log');
+        const statusElement = document.getElementById('status');
+        
+        // Initialize network with default settings
+        setupTrainingData();
+        network.init();
+        
+        // Set canvas size
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+        }
+        
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+        
+        // Draw network
+        function drawNetwork() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const width = canvas.width;
+            const height = canvas.height;
+            
+            // Calculate layer positions
+            const layerX = [width * 0.2, width * 0.5, width * 0.8];
+            const inputY = Array(network.inputNodes).fill().map((_, i) => 
+                height * 0.3 + i * height * 0.4 / (network.inputNodes - 1 || 1));
+            const hiddenY = Array(network.hiddenNodes).fill().map((_, i) => 
+                height * 0.2 + i * height * 0.6 / (network.hiddenNodes - 1 || 1));
+            const outputY = [height * 0.5];
+            
+            // Draw connections (simplified - showing average weights)
+            // Input to hidden connections
+            for (let i = 0; i < network.inputNodes; i++) {
+                for (let h = 0; h < network.hiddenNodes; h++) {
+                    const weight = network.inputToHiddenWeights[i][h];
+                    const color = weight > 0 ? 
+                        `rgb(0, ${Math.min(255, Math.abs(weight) * 255)}, 0)` : 
+                        `rgb(${Math.min(255, Math.abs(weight) * 255)}, 0, 0)`;
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(layerX[0], inputY[i]);
+                    ctx.lineTo(layerX[1], hiddenY[h]);
+                    ctx.strokeStyle = color;
+                    ctx.lineWidth = Math.min(5, Math.abs(weight) * 3);
+                    ctx.stroke();
+                }
+            }
+            
+            // Hidden to output connections
+            for (let h = 0; h < network.hiddenNodes; h++) {
+                const weight = network.hiddenToOutputWeights[h];
+                const color = weight > 0 ? 
+                    `rgb(0, ${Math.min(255, Math.abs(weight) * 255)}, 0)` : 
+                    `rgb(${Math.min(255, Math.abs(weight) * 255)}, 0, 0)`;
+                
+                ctx.beginPath();
+                ctx.moveTo(layerX[1], hiddenY[h]);
+                ctx.lineTo(layerX[2], outputY[0]);
+                ctx.strokeStyle = color;
+                ctx.lineWidth = Math.min(5, Math.abs(weight) * 3);
+                ctx.stroke();
+            }
+            
+            // Draw neurons
+            // Input neurons
+            for (let i = 0; i < network.inputNodes; i++) {
+                ctx.beginPath();
+                ctx.arc(layerX[0], inputY[i], 20, 0, Math.PI * 2);
+                ctx.fillStyle = '#4CAF50';
+                ctx.fill();
+                ctx.strokeStyle = '#333';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                
+                ctx.fillStyle = 'white';
+                ctx.font = '12px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('Input', layerX[0], inputY[i] - 25);
+                ctx.fillText(`${i + 1}`, layerX[0], inputY[i] + 5);
+            }
+            
+            // Hidden neurons
+            for (let h = 0; h < network.hiddenNodes; h++) {
+                ctx.beginPath();
+                ctx.arc(layerX[1], hiddenY[h], 20, 0, Math.PI * 2);
+                ctx.fillStyle = '#2196F3';
+                ctx.fill();
+                ctx.strokeStyle = '#333';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                
+                ctx.fillStyle = 'white';
+                ctx.font = '12px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('Hidden', layerX[1], hiddenY[h] - 25);
+                ctx.fillText(`${h + 1}`, layerX[1], hiddenY[h] + 5);
+            }
+            
+            // Output neuron
+            ctx.beginPath();
+            ctx.arc(layerX[2], outputY[0], 25, 0, Math.PI * 2);
+            ctx.fillStyle = '#FF9800';
+            ctx.fill();
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            ctx.fillStyle = 'white';
+            ctx.font = '14px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('Output', layerX[2], outputY[0] - 35);
+            ctx.fillText('1', layerX[2], outputY[0] + 5);
+        }
+        
+        // Simple training simulation
+        function simulateTraining() {
+            if (!isTraining || currentEpoch >= maxEpochs) {
+                stopTraining();
+                return;
+            }
+            
+            // Simulate training progress
+            currentEpoch++;
+            
+            // Randomly adjust weights slightly to simulate learning
+            for (let i = 0; i < network.inputToHiddenWeights.length; i++) {
+                for (let j = 0; j < network.inputToHiddenWeights[i].length; j++) {
+                    network.inputToHiddenWeights[i][j] += (Math.random() - 0.5) * 0.1;
+                }
+            }
+            
+            for (let i = 0; i < network.hiddenToOutputWeights.length; i++) {
+                network.hiddenToOutputWeights[i] += (Math.random() - 0.5) * 0.1;
+            }
+            
+            for (let i = 0; i < network.hiddenBiases.length; i++) {
+                network.hiddenBiases[i] += (Math.random() - 0.5) * 0.1;
+            }
+            
+            network.outputBias += (Math.random() - 0.5) * 0.1;
+            
+            // Update display periodically
+            if (currentEpoch % 5 === 0) {
+                drawNetwork();
+            }
+            
+            if (currentEpoch % 20 === 0) {
+                addLog(`Epoch ${currentEpoch}: Simulated training progress...`);
+            }
+        }
+        
+        // Start training
+        function startTraining() {
+            if (isTraining) return;
+            
+            isTraining = true;
+            currentEpoch = 0;
+            maxEpochs = parseInt(document.getElementById('epochs').value);
+            network.hiddenNodes = parseInt(document.getElementById('hiddenSize').value);
+            
+            // Setup training data based on selection
+            setupTrainingData();
+            
+            startBtn.disabled = true;
+            stopBtn.disabled = false;
+            statusElement.textContent = 'Training in progress...';
+            
+            // Determine dataset name for log
+            const datasetName = document.getElementById('dataset').value;
+            let datasetDesc = '';
+            switch(datasetName) {
+                case 'xor': datasetDesc = 'XOR (4 samples)'; break;
+                case 'and': datasetDesc = 'AND (4 samples)'; break;
+                case 'or': datasetDesc = 'OR (4 samples)'; break;
+                case 'not': datasetDesc = 'NOT (2 samples)'; break;
+                default: datasetDesc = 'XOR (4 samples)';
+            }
+            
+            addLog(`\nStarting training for ${maxEpochs} epochs with ${network.hiddenNodes} hidden neurons...`);
+            addLog(`Training dataset: ${datasetDesc}`);
+            
+            // Initialize network with new architecture
+            network.init();
+            
+            // Start simulation interval
+            trainingInterval = setInterval(simulateTraining, 100);
+        }
+        
+        // Stop training
+        function stopTraining() {
+            isTraining = false;
+            if (trainingInterval) {
+                clearInterval(trainingInterval);
+                trainingInterval = null;
+            }
+            
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
+            statusElement.textContent = `Training completed after ${currentEpoch} epochs`;
+            
+            addLog(`Training completed after ${currentEpoch} epochs\n`);
+        }
+        
+        // Add message to log
+        function addLog(message) {
+            logElement.textContent += message + '\n';
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+        
+        // Event listeners
+        startBtn.addEventListener('click', startTraining);
+        stopBtn.addEventListener('click', stopTraining);
+        
+        // Draw initial network
+        drawNetwork();
+        
+        // Add sample log messages
+        addLog('Neural Network Visualizer loaded');
+        addLog('Select dataset from dropdown to change input data');
+        
+        // Initialize with current dataset
+        setupTrainingData();
+        const datasetName = document.getElementById('dataset').value;
+        let datasetDesc = '';
+        switch(datasetName) {
+            case 'xor': datasetDesc = 'XOR (4 samples)'; break;
+            case 'and': datasetDesc = 'AND (4 samples)'; break;
+            case 'or': datasetDesc = 'OR (4 samples)'; break;
+            case 'not': datasetDesc = 'NOT (2 samples)'; break;
+            default: datasetDesc = 'XOR (4 samples)';
+        }
+        addLog(`Current dataset: ${datasetDesc} (2 inputs -> 4 hidden -> 1 output)`);
+    </script>
+</body>
+</html>

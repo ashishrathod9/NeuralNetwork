@@ -1,0 +1,11 @@
+/Users/ashishrathod/Documents/Neural_network/NeuralNetwork/build/CMakeFiles/nnlib.dir
+/Users/ashishrathod/Documents/Neural_network/NeuralNetwork/build/CMakeFiles/main.dir
+/Users/ashishrathod/Documents/Neural_network/NeuralNetwork/build/CMakeFiles/xor_example.dir
+/Users/ashishrathod/Documents/Neural_network/NeuralNetwork/build/CMakeFiles/mnist_example.dir
+/Users/ashishrathod/Documents/Neural_network/NeuralNetwork/build/CMakeFiles/mnist_example_improved.dir
+/Users/ashishrathod/Documents/Neural_network/NeuralNetwork/build/CMakeFiles/tests.dir
+/Users/ashishrathod/Documents/Neural_network/NeuralNetwork/build/CMakeFiles/edit_cache.dir
+/Users/ashishrathod/Documents/Neural_network/NeuralNetwork/build/CMakeFiles/rebuild_cache.dir
+/Users/ashishrathod/Documents/Neural_network/NeuralNetwork/build/gui/CMakeFiles/backend_trainer.dir
+/Users/ashishrathod/Documents/Neural_network/NeuralNetwork/build/gui/CMakeFiles/edit_cache.dir
+/Users/ashishrathod/Documents/Neural_network/NeuralNetwork/build/gui/CMakeFiles/rebuild_cache.dir
