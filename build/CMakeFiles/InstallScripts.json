@@ -1,8 +1,0 @@
-{
-	"InstallScripts" : 
-	[
-		"/Users/ashishrathod/Documents/Neural_network/NeuralNetwork/build/cmake_install.cmake",
-		"/Users/ashishrathod/Documents/Neural_network/NeuralNetwork/build/gui/cmake_install.cmake"
-	],
-	"Parallel" : false
-}

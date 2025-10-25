@@ -1,1 +1,0 @@
-/usr/bin/c++  -Wall -Wextra -O3 -arch arm64 -Wl,-search_paths_first -Wl,-headerpad_max_install_names CMakeFiles/mnist_example_improved.dir/examples/mnist_example_improved.cpp.o -o mnist_example_improved  libnnlib.a

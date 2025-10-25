@@ -1,0 +1,4 @@
+/Users/ashishrathod/Documents/Nerual_networkcpp/xor_only/build/CMakeFiles/nnlib.dir
+/Users/ashishrathod/Documents/Nerual_networkcpp/xor_only/build/CMakeFiles/xor_example.dir
+/Users/ashishrathod/Documents/Nerual_networkcpp/xor_only/build/CMakeFiles/edit_cache.dir
+/Users/ashishrathod/Documents/Nerual_networkcpp/xor_only/build/CMakeFiles/rebuild_cache.dir

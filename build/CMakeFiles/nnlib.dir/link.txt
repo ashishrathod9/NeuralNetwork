@@ -1,2 +1,0 @@
-/usr/bin/ar qc libnnlib.a CMakeFiles/nnlib.dir/src/Activation.cpp.o CMakeFiles/nnlib.dir/src/Adam.cpp.o CMakeFiles/nnlib.dir/src/Data.cpp.o CMakeFiles/nnlib.dir/src/Linear.cpp.o CMakeFiles/nnlib.dir/src/Loss.cpp.o CMakeFiles/nnlib.dir/src/Network.cpp.o CMakeFiles/nnlib.dir/src/Optimizer.cpp.o CMakeFiles/nnlib.dir/src/Tensor.cpp.o CMakeFiles/nnlib.dir/src/Training.cpp.o
-/usr/bin/ranlib libnnlib.a
